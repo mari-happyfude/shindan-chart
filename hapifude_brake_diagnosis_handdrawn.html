@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自分のブレーキタイプ診断｜はぴふで診断室</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #FF7898;
+    --peach: #FFB18D;
+    --lavender: #C9B5F5;
+    --mint: #B8E8D5;
+    --yellow: #FFE28A;
+    --cream: #FFF9EF;
+    --white: #FFFFFF;
+    --text: #44384A;
+    --text-light: #8C7D91;
+    --shadow: rgba(119, 83, 132, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Zen Maru Gothic', sans-serif;
+    background: var(--cream);
+    min-height: 100vh;
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* 背景の丸い装飾 */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -80px; right: -80px;
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, #FFD6E0 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -60px; left: -60px;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, #D4EEFF 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ヘッダー */
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+    animation: fadeDown 0.6s ease;
+  }
+  .header .emoji-row {
+    font-size: 28px;
+    letter-spacing: 6px;
+    margin-bottom: 10px;
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--text);
+    line-height: 1.4;
+    letter-spacing: 0.05em;
+  }
+  .header h1 span {
+    color: var(--pink);
+  }
+  .header p {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--text-light);
+  }
+
+  /* カード */
+  .card {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 28px 22px;
+    box-shadow: 0 8px 32px var(--shadow);
+    animation: fadeUp 0.5s ease;
+  }
+
+  /* 進捗バー */
+  .progress-wrap {
+    margin-bottom: 22px;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-light);
+    margin-bottom: 6px;
+  }
+  .progress-bar {
+    height: 8px;
+    background: #F0E6F6;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--pink), var(--lavender));
+    border-radius: 99px;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* 質問 */
+  .question-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--pink), var(--peach));
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 99px;
+    margin-bottom: 12px;
+    letter-spacing: 0.08em;
+  }
+  .question-text {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.6;
+    margin-bottom: 22px;
+    color: var(--text);
+  }
+
+  /* 選択肢 */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .option-btn {
+    background: #FBF6FF;
+    border: 2px solid #EAD9F7;
+    border-radius: 16px;
+    padding: 14px 18px;
+    text-align: left;
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .option-btn:active {
+    transform: scale(0.97);
+  }
+  .option-btn:hover {
+    background: #FFF0F5;
+    border-color: var(--pink);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255,143,171,0.2);
+  }
+  .option-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  /* 結果 */
+  .result-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .result-emoji {
+    font-size: 52px;
+    display: block;
+    margin-bottom: 8px;
+    animation: bounceIn 0.6s ease;
+  }
+  .result-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--pink), var(--lavender));
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 16px;
+    border-radius: 99px;
+    margin-bottom: 10px;
+    letter-spacing: 0.08em;
+  }
+  .result-type {
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: 0.04em;
+  }
+
+  .result-section {
+    margin-top: 20px;
+  }
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--pink);
+    margin-bottom: 10px;
+    letter-spacing: 0.06em;
+  }
+  .section-label::before {
+    content: '';
+    display: block;
+    width: 4px; height: 16px;
+    background: linear-gradient(to bottom, var(--pink), var(--lavender));
+    border-radius: 99px;
+  }
+
+  .feature-box {
+    background: #FBF6FF;
+    border-radius: 16px;
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.9;
+    color: var(--text);
+    border-left: 3px solid var(--lavender);
+  }
+  .feature-box .highlight {
+    display: inline-block;
+    background: linear-gradient(135deg, #FFE0E9, #F0D8FF);
+    border-radius: 8px;
+    padding: 2px 8px;
+    font-weight: 700;
+    margin: 2px 0;
+  }
+
+  .work-box {
+    background: linear-gradient(135deg, #FFF5F8, #F8F0FF);
+    border-radius: 16px;
+    padding: 18px;
+    border: 2px dashed #F0C0D5;
+    position: relative;
+  }
+  .work-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  .work-step-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .work-text strong {
+    color: var(--pink);
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  /* まとめ */
+  .summary-box {
+    background: linear-gradient(135deg, #FFF0F5, #F3EEFF);
+    border-radius: 20px;
+    padding: 22px;
+    text-align: center;
+    margin-top: 20px;
+    border: 2px solid #F0D8F0;
+  }
+  .summary-box p {
+    font-size: 14px;
+    line-height: 2;
+    color: var(--text);
+  }
+  .summary-box .big-text {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--pink);
+    display: block;
+    margin: 8px 0;
+  }
+
+  /* やり直しボタン */
+  .retry-btn {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--pink), var(--lavender));
+    color: white;
+    border: none;
+    border-radius: 99px;
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    box-shadow: 0 4px 16px rgba(255,143,171,0.4);
+    transition: all 0.2s;
+  }
+  .retry-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,143,171,0.5);
+  }
+  .retry-btn:active {
+    transform: scale(0.97);
+  }
+
+  /* 区切り */
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, #EAD9F7, transparent);
+    margin: 20px 0;
+  }
+
+  /* アニメーション */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes bounceIn {
+    0%   { transform: scale(0.5); opacity: 0; }
+    70%  { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .hidden { display: none; }
+
+  /* スクロールトップ用 */
+  .scroll-hint {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 12px;
+  }
+
+  /* はぴふで診断室：ゆるかわポップ＋文房具のやわらかさ */
+  body {
+    background:
+      radial-gradient(circle at 8% 18%, rgba(255, 226, 138, .38) 0 5px, transparent 6px),
+      radial-gradient(circle at 92% 38%, rgba(184, 232, 213, .52) 0 7px, transparent 8px),
+      radial-gradient(circle at 13% 72%, rgba(201, 181, 245, .30) 0 4px, transparent 5px),
+      var(--cream);
+    background-size: 78px 78px, 104px 104px, 90px 90px, auto;
+  }
+  .container { padding-top: 28px; }
+  .header { position: relative; padding: 18px 12px 20px; margin-bottom: 14px; }
+  .header::before {
+    content: "CHECK!"; position: absolute; top: 0; right: 8px; transform: rotate(9deg);
+    background: var(--yellow); color: #66512D; border: 2px solid var(--text);
+    border-radius: 7px 9px 6px 8px; padding: 4px 9px; font-size: 10px;
+    font-weight: 900; letter-spacing: .08em; box-shadow: 2px 3px 0 var(--text);
+  }
+  .header .emoji-row {
+    display: inline-block; background: #fff; border: 2px solid var(--text);
+    border-radius: 18px 14px 20px 13px; padding: 5px 13px;
+    box-shadow: 3px 4px 0 var(--mint); transform: rotate(-3deg);
+  }
+  .header h1 { margin-top: 10px; font-size: clamp(22px, 5.8vw, 27px); letter-spacing: .015em; }
+  .header h1 span { display: inline-block; color: #F45F83; text-decoration: underline; text-decoration-color: var(--yellow); text-decoration-thickness: 5px; text-underline-offset: 2px; }
+  .header p { display: inline-block; background: rgba(255,255,255,.82); border-radius: 999px; padding: 6px 12px; margin-top: 12px; }
+  .card { border: 2px solid var(--text); border-radius: 28px 24px 30px 22px; box-shadow: 5px 6px 0 #DCCCF4, 0 12px 28px var(--shadow); padding: 26px 21px; }
+  .progress-bar { background: #F2EAF8; border: 1px solid #E1D3EF; }
+  .progress-fill { background: repeating-linear-gradient(135deg, #FF7898 0 10px, #FF91A9 10px 20px); }
+  .question-badge { background: var(--text); border: 2px solid var(--text); box-shadow: 2px 2px 0 var(--yellow); letter-spacing: .04em; }
+  .option-btn { background: #FFFDF9; border: 2px solid #E5D9EF; border-radius: 17px 14px 18px 13px; box-shadow: 0 3px 0 #E8DDF1; min-height: 58px; }
+  .option-btn:nth-child(2n) { background: #F8F4FF; }
+  .option-btn:nth-child(3n) { background: #F1FBF6; }
+  .option-btn:hover { background: #FFF0F4; border-color: var(--pink); box-shadow: 0 4px 0 #F8B8C9; }
+  .option-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: white; border: 1px solid #EFE3F3; }
+  .result-badge { background: var(--text); box-shadow: 2px 3px 0 var(--yellow); }
+  .result-type { margin-top: 7px; text-decoration: underline; text-decoration-color: var(--mint); text-decoration-thickness: 6px; text-underline-offset: 3px; }
+  .feature-box { background: #FFFBF5; border: 2px dashed #D4C3ED; border-left: 5px solid var(--lavender); border-radius: 15px 20px 16px 19px; }
+  .feature-box .highlight { background: #FFF0A8; color: #51422C; }
+  .work-box { background: repeating-linear-gradient(0deg, rgba(255,255,255,.45) 0 27px, rgba(226,211,242,.34) 27px 28px), linear-gradient(135deg, #FFF6F8, #F8F2FF); border: 2px dashed #E9A9C0; border-radius: 16px 22px 16px 20px; }
+  .work-text strong { color: #E95D82; }
+  .summary-box { background: linear-gradient(135deg, #FFF1C6, #FFF0F6 55%, #F1ECFF); border: 2px solid var(--text); border-radius: 22px 18px 25px 17px; box-shadow: 3px 4px 0 #DCCCF4; }
+  .summary-box .big-text { color: #E95D82; }
+  .retry-btn { background: linear-gradient(105deg, #FF7898, #FF9B83 52%, #BBA5F3); border: 2px solid var(--text); box-shadow: 3px 4px 0 var(--text); }
+  .retry-btn:hover { box-shadow: 4px 5px 0 var(--text); }
+  .retry-btn:active { box-shadow: 1px 2px 0 var(--text); }
+  .scroll-hint { margin-top: 17px; }
+  @media (max-width: 360px) {
+    .container { padding-left: 12px; padding-right: 12px; }
+    .card { padding: 23px 16px; }
+    .header h1 { font-size: 21px; }
+    .question-text { font-size: 17px; }
+  }
+
+
+  .hand-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    vertical-align: middle;
+  }
+  .hand-icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    filter: drop-shadow(1px 1px 0 rgba(255,255,255,.8));
+  }
+  .result-emoji .hand-icon {
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 4px;
+  }
+  .option-icon.hand-icon {
+    width: 36px;
+    height: 36px;
+    padding: 1px;
+    background: transparent;
+    border: 0;
+  }
+  .header .emoji-row .hand-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="emoji-row"><span class="hand-icon" role="img" aria-label="🔍"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="20" cy="19" r="12" fill="#DDF4EA" stroke="#65536C" stroke-width="2.3"/><circle cx="20" cy="19" r="7" fill="#FFF9EF" stroke="#A8DCC8" stroke-width="1.5"/><path d="M28 28 L39 39 Q41 41 43 38 L32 26" fill="#FFB18D" stroke="#65536C" stroke-width="2.3" stroke-linecap="round"/><path d="M15 18 Q18 13 23 16" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/><path d="M8 8 l-3 -2 M31 8 l3 -3" stroke="#FF7898" stroke-width="2" stroke-linecap="round"/></svg></span></div>
+    <h1>自分の<span>ブレーキ</span>タイプ診断</h1>
+    <p>あなたが動けない理由がわかります</p>
+  </div>
+
+  <div class="card" id="quiz-card">
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-label">
+        <span id="progress-text">Q1 / 2</span>
+        <span id="progress-pct">50%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width:50%"></div>
+      </div>
+    </div>
+
+    <div id="question-area"></div>
+  </div>
+</div>
+
+<script>
+const questions = {
+  q1: {
+    id: 'q1',
+    badge: 'まず最初に',
+    text: 'あなたが今、一番近い状態は？',
+    options: [
+      { icon: '<span class="hand-icon" role="img" aria-label="🔥"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M25 5 C28 14 19 15 22 22 C16 18 15 14 16 11 C7 19 8 31 15 38 C23 46 37 41 40 31 C43 22 35 16 33 11 C32 19 28 20 28 24 C24 20 28 13 25 5Z" fill="#FF9B83" stroke="#76515A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M25 25 C30 29 29 32 26 37 C22 39 18 35 20 31 C21 28 23 28 25 25Z" fill="#FFE28A" stroke="#76515A" stroke-width="1.6"/><path d="M18 26 l-3 -2 M34 24 l3 -3" stroke="#76515A" stroke-width="1.8" stroke-linecap="round"/></svg></span>', text: 'やりたいことはあるけど、なぜか動けない', next: 'q2a' },
+      { icon: '<span class="hand-icon" role="img" aria-label="🌀"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 8 C12 6 7 18 14 25 C20 31 31 26 29 20 C28 16 21 17 21 21 C21 24 26 25 28 22 C33 15 23 11 18 16 C11 22 18 34 28 31 C37 28 37 17 31 13" fill="none" stroke="#8B78B6" stroke-width="3.2" stroke-linecap="round"/><path d="M32 7 l2 -3 M37 13 l4 -1 M10 31 l-3 2" stroke="#FF9B83" stroke-width="2.2" stroke-linecap="round"/><circle cx="34" cy="34" r="2" fill="#FF7898"/></svg></span>', text: 'そもそも何がやりたいのかよくわからない', next: 'q2b' },
+    ]
+  },
+  q2a: {
+    id: 'q2a',
+    badge: 'Q2',
+    text: 'いざ動こうとすると、\n心の中で出てくるのはどれ？',
+    options: [
+      { icon: '<span class="hand-icon" role="img" aria-label="😱"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5 C12 5 7 15 8 26 C9 37 16 43 24 43 C33 43 40 35 40 24 C40 13 34 5 24 5Z" fill="#FFF0C8" stroke="#76515A" stroke-width="2.2"/><path d="M15 19 l5 -2 M28 17 l5 2" stroke="#76515A" stroke-width="2.4" stroke-linecap="round"/><ellipse cx="18" cy="23" rx="2.5" ry="3.5" fill="#76515A"/><ellipse cx="30" cy="23" rx="2.5" ry="3.5" fill="#76515A"/><ellipse cx="24" cy="32" rx="4" ry="5" fill="#FF9B83" stroke="#76515A" stroke-width="1.5"/><path d="M6 15 l-3 -2 M40 13 l3 -3" stroke="#FF7898" stroke-width="2" stroke-linecap="round"/></svg></span>', text: '「失敗したらどうしよう…」', result: 'r1' },
+      { icon: '<span class="hand-icon" role="img" aria-label="📚"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 10 Q8 8 11 9 L35 15 L33 38 L9 32Z" fill="#C9B5F5" stroke="#65536C" stroke-width="2" stroke-linejoin="round"/><path d="M13 6 L39 12 L37 35 L12 29Z" fill="#FFE28A" stroke="#65536C" stroke-width="2" stroke-linejoin="round"/><path d="M18 13 L33 17 M17 19 L32 23" stroke="#FFF9EF" stroke-width="2" stroke-linecap="round"/><path d="M9 36 Q22 31 38 38 L37 43 Q22 37 9 42Z" fill="#FF9BB0" stroke="#65536C" stroke-width="2" stroke-linejoin="round"/></svg></span>', text: '「もう少し準備してから」', result: 'r2' },
+      { icon: '<span class="hand-icon" role="img" aria-label="⏰"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="26" r="15" fill="#FFF0C8" stroke="#65536C" stroke-width="2.2"/><path d="M17 7 L13 12 M31 7 L35 12" stroke="#65536C" stroke-width="3" stroke-linecap="round"/><path d="M24 17 L24 26 L31 30" fill="none" stroke="#E97991" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 27 l-3 1 M40 22 l3 -1" stroke="#FF9B83" stroke-width="2" stroke-linecap="round"/></svg></span>', text: '「時間がなくて…」', result: 'r3' },
+      { icon: '<span class="hand-icon" role="img" aria-label="👀"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 23 Q12 10 21 22 Q12 35 4 23Z" fill="#FFF9EF" stroke="#65536C" stroke-width="2"/><path d="M25 23 Q34 10 44 22 Q35 35 25 23Z" fill="#FFF9EF" stroke="#65536C" stroke-width="2"/><circle cx="13" cy="23" r="3.5" fill="#9CCFBE"/><circle cx="35" cy="23" r="3.5" fill="#9CCFBE"/><circle cx="14" cy="22" r="1.2" fill="#65536C"/><circle cx="36" cy="22" r="1.2" fill="#65536C"/><path d="M8 14 l-2 -3 M39 13 l2 -3" stroke="#FF7898" stroke-width="2" stroke-linecap="round"/></svg></span>', text: '「周りにどう思われるかな」', result: 'r4' },
+    ]
+  },
+  q2b: {
+    id: 'q2b',
+    badge: 'Q2',
+    text: '「わからない」の正体は\nどれに近い？',
+    options: [
+      { icon: '<span class="hand-icon" role="img" aria-label="🔍"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="20" cy="19" r="12" fill="#DDF4EA" stroke="#65536C" stroke-width="2.3"/><circle cx="20" cy="19" r="7" fill="#FFF9EF" stroke="#A8DCC8" stroke-width="1.5"/><path d="M28 28 L39 39 Q41 41 43 38 L32 26" fill="#FFB18D" stroke="#65536C" stroke-width="2.3" stroke-linecap="round"/><path d="M15 18 Q18 13 23 16" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/><path d="M8 8 l-3 -2 M31 8 l3 -3" stroke="#FF7898" stroke-width="2" stroke-linecap="round"/></svg></span>', text: '好きなことが思い浮かばない', result: 'r5' },
+      { icon: '<span class="hand-icon" role="img" aria-label="🌊"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 18 Q10 11 16 18 T28 18 T40 18 L43 24 Q37 31 30 24 T17 24 T5 24Z" fill="#B9DDF4" stroke="#647C9C" stroke-width="2" stroke-linejoin="round"/><path d="M5 31 Q11 24 17 31 T29 31 T41 31" fill="none" stroke="#647C9C" stroke-width="2.3" stroke-linecap="round"/><path d="M15 8 l2 -3 M34 10 l3 -2" stroke="#FF9B83" stroke-width="2" stroke-linecap="round"/></svg></span>', text: '選択肢が多すぎて選べない', result: 'r6' },
+      { icon: '<span class="hand-icon" role="img" aria-label="🫥"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5 C13 5 7 14 8 25 C9 36 16 42 24 42 C33 42 40 34 40 24 C40 13 34 5 24 5Z" fill="#E8E0F8" stroke="#76668E" stroke-width="2.2"/><path d="M15 22 l4 1 M29 23 l4 -1" stroke="#76668E" stroke-width="2.2" stroke-linecap="round"/><path d="M19 32 Q24 29 29 32" fill="none" stroke="#76668E" stroke-width="2" stroke-linecap="round"/><path d="M6 13 l-2 -3 M39 9 l3 -2" stroke="#B6A2E6" stroke-width="2" stroke-linecap="round"/></svg></span>', text: '自分にはどうせできない気がする', result: 'r7' },
+    ]
+  }
+};
+
+const results = {
+  r1: {
+    emoji: '<span class="hand-icon" role="img" aria-label="🎬"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="14" width="34" height="27" rx="4" fill="#D9C8F5" stroke="#65536C" stroke-width="2.2"/><path d="M7 14 L15 6 L22 14 L29 6 L36 14 L41 9" fill="#FF9BB0" stroke="#65536C" stroke-width="2.2" stroke-linejoin="round"/><path d="M17 22 L17 34 L29 28Z" fill="#FFF9EF" stroke="#65536C" stroke-width="1.5" stroke-linejoin="round"/><path d="M11 18 l4 0 M33 18 l4 0" stroke="#FFF9EF" stroke-width="2" stroke-linecap="round"/></svg></span>',
+    type: '失敗こわい族',
+    feature: `まだ何も起きていないのに、脳内で\n<span class="highlight">「大失敗スペシャル」</span>が上映中。\nしかも満席。\n\n「もし上手くいかなかったら…」\n失敗したあとの妄想が止まらない。\n\nでも現実はまだ、何も起きていません。`,
+    work: `紙に<strong>「失敗したら困ること」を3つ</strong>書いてみよう。\n\nその横に\n「本当にそうなる？」\nと書いてみる。\n\n意外と脳内上映会だったことに気づくかも。`
+  },
+  r2: {
+    emoji: '<span class="hand-icon" role="img" aria-label="⚔️"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 7 L16 5 L29 29 L25 32Z" fill="#DDECF9" stroke="#65536C" stroke-width="2" stroke-linejoin="round"/><path d="M33 7 L37 10 L23 32 L19 29Z" fill="#FFE28A" stroke="#65536C" stroke-width="2" stroke-linejoin="round"/><path d="M19 28 L29 34 M16 32 L22 38 M25 33 L31 39" stroke="#65536C" stroke-width="3" stroke-linecap="round"/><path d="M7 17 l-3 -2 M40 18 l3 -2" stroke="#FF7898" stroke-width="2" stroke-linecap="round"/></svg></span>',
+    type: '準備しすぎ職人',
+    feature: `まだレベル1のスライムしか出てこないのに、伝説の武器を探してるタイプ。\n\n武器を集めてるうちに\nラスボスが老衰で倒れそう。\n\n学ぶのは得意だけど、行動が後回し。`,
+    work: `今日は新しく調べるの<strong>禁止</strong>。\n今知っていることで、どれか1つやってみよう。\n\n📝 メモに書き出すだけ\n💬 家族や友人に話してみる\n📲 SNSの下書きを書く（できる人は投稿！）\n🤖 AIに「こんなことやりたい」と投げてみる\n\n考えてるだけより、絶対前に進む。`
+  },
+  r3: {
+    emoji: '<span class="hand-icon" role="img" aria-label="📱"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="12" y="4" width="24" height="40" rx="5" fill="#CFEFE2" stroke="#65536C" stroke-width="2.2"/><rect x="16" y="10" width="16" height="25" rx="2" fill="#FFF9EF" stroke="#9CCFBE" stroke-width="1.5"/><circle cx="24" cy="39" r="1.5" fill="#65536C"/><path d="M19 15 l4 4 7 -7" fill="none" stroke="#FF7898" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>',
+    type: '時間ないない団',
+    feature: `本当に忙しい。\n\nでも\n<span class="highlight">「まとまった時間がないとできない」</span>\nと思っている可能性あり。\n\nスマホのスクリーンタイム、\n確認すると意外と時間が作れるかも。`,
+    work: `タイマーを<strong>5分セット</strong>。\n\nその5分だけ\nやりたいことをやってみよう。\n\n5分なら意外と動ける。`
+  },
+  r4: {
+    emoji: '<span class="hand-icon" role="img" aria-label="🎭"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 10 Q18 4 24 10 Q30 4 41 10 L39 25 Q35 38 24 39 Q13 38 9 25Z" fill="#FFE1E9" stroke="#65536C" stroke-width="2.2"/><path d="M13 19 Q17 15 21 19 Q17 25 13 19Z" fill="#FFF9EF" stroke="#65536C" stroke-width="1.5"/><path d="M27 19 Q31 15 35 19 Q31 25 27 19Z" fill="#FFF9EF" stroke="#65536C" stroke-width="1.5"/><path d="M15 29 Q20 25 24 30 Q29 25 33 29" fill="none" stroke="#E97991" stroke-width="2" stroke-linecap="round"/></svg></span>',
+    type: '脳内観客席満員タイプ',
+    feature: `何か始めようとすると、\n脳内の観客席が満員になる。\nそして聞いてもいないのに、\n観客たちがザワつき始める。\n\n「夫に何か言われるかも…」\n「ママ友に変だと思われるんじゃない？」\n「周りに迷惑かけるかも」\n\nでも安心してください。\nその観客、ほぼ架空です。`,
+    work: `ノートに書いてみよう。\n\n<strong>「お金も時間も気にしなくていいなら、本当は何がしたい？」</strong>\n\n正解はないし、誰にも見せなくていい。\n自分の本音に、こっそり耳を傾けてみよう。`
+  },
+  r5: {
+    emoji: '<span class="hand-icon" role="img" aria-label="🗺️"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M5 12 L17 7 L30 12 L43 7 L42 36 L30 41 L17 36 L6 41Z" fill="#DDF3E6" stroke="#65536C" stroke-width="2" stroke-linejoin="round"/><path d="M17 8 L17 36 M30 12 L30 41" stroke="#8ECAB2" stroke-width="2" stroke-dasharray="3 3"/><path d="M24 16 C19 16 18 22 24 29 C30 22 29 16 24 16Z" fill="#FF7898" stroke="#65536C" stroke-width="1.5"/><circle cx="24" cy="21" r="2" fill="#FFF9EF"/></svg></span>',
+    type: '好き迷子タイプ',
+    feature: `好きなことがわからない、と思っているけど実は\n<span class="highlight">「正解の好き」</span>を探しているのかも。\n\n「これって本当に好きって言える？」\n「続けられなかったら意味ないし」\n「もっとちゃんとしたものを見つけなきゃ」\n\n「好き」に正解なんて、ないんですよ。`,
+    work: `「ちょっと気になる」\nを書き出してみよう。\n\n好きじゃなくてOK。\n<strong>10個出せたら優勝</strong>🏆`
+  },
+  r6: {
+    emoji: '<span class="hand-icon" role="img" aria-label="🚦"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="14" y="5" width="20" height="36" rx="8" fill="#FFF9EF" stroke="#65536C" stroke-width="2.2"/><circle cx="24" cy="14" r="4" fill="#FF9B83" stroke="#65536C" stroke-width="1.3"/><circle cx="24" cy="23" r="4" fill="#FFE28A" stroke="#65536C" stroke-width="1.3"/><circle cx="24" cy="32" r="4" fill="#B8E8D5" stroke="#65536C" stroke-width="1.3"/><path d="M9 14 l-3 -2 M39 31 l3 2" stroke="#FF7898" stroke-width="2" stroke-linecap="round"/></svg></span>',
+    type: '選択肢渋滞タイプ',
+    feature: `やりたいことが多すぎて\n脳内が連休中の高速道路。\n\n「あれもいい、これもいい」\n「どれかを選んだら他を諦めることになる」\n全部大切で捨てられない。`,
+    work: `今月やることを\n<strong>1つだけ</strong>決めよう。\n\n残りは捨てなくていい。\n<strong>保留</strong>でOK。`
+  },
+  r7: {
+    emoji: '<span class="hand-icon" role="img" aria-label="🙅"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="17" fill="#FFE1E9" stroke="#65536C" stroke-width="2.2"/><path d="M15 18 l5 2 M28 20 l5 -2" stroke="#65536C" stroke-width="2.3" stroke-linecap="round"/><path d="M16 31 Q24 25 32 31" fill="none" stroke="#65536C" stroke-width="2.3" stroke-linecap="round"/><path d="M8 8 L40 40" stroke="#FF7898" stroke-width="4" stroke-linecap="round"/><path d="M8 8 L40 40" stroke="#FFF9EF" stroke-width="1.2" stroke-linecap="round"/></svg></span>',
+    type: '自分に辛口すぎタイプ',
+    feature: `何かやりたいことが浮かぶと\n自分へのダメ出し大会が始まる。\n\n応募すらしてないのに\n脳内人事部から\n不採用通知が届くタイプ。`,
+    work: `今日あった<strong>「よかったこと」を3つ</strong>探してみよう。\n\n大きなことでなくてOK。\n\n・ご飯がおいしかった\n・風が気持ちよかった\n・子どもが笑った\n\nそんなレベルで十分。`
+  }
+};
+
+let currentQ = 'q1';
+let step = 1;
+
+function getProgress(qid) {
+  if (qid === 'q1') return { current: 1, total: 2, pct: 50 };
+  return { current: 2, total: 2, pct: 100 };
+}
+
+function renderQuestion(qid) {
+  currentQ = qid;
+  const q = questions[qid];
+  const prog = getProgress(qid);
+
+  document.getElementById('progress-wrap').style.display = '';
+  document.getElementById('progress-text').textContent = `Q${prog.current} / ${prog.total}`;
+  document.getElementById('progress-pct').textContent = prog.pct + '%';
+  document.getElementById('progress-fill').style.width = prog.pct + '%';
+
+  const area = document.getElementById('question-area');
+  area.innerHTML = '';
+
+  const badge = document.createElement('div');
+  badge.className = 'question-badge';
+  badge.textContent = q.badge;
+
+  const qtext = document.createElement('div');
+  qtext.className = 'question-text';
+  qtext.textContent = q.text;
+
+  const opts = document.createElement('div');
+  opts.className = 'options';
+
+  q.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-icon">${opt.icon}</span><span>${opt.text}</span>`;
+    btn.addEventListener('click', () => {
+      if (opt.next) {
+        renderQuestion(opt.next);
+      } else if (opt.result) {
+        renderResult(opt.result);
+      }
+    });
+    opts.appendChild(btn);
+  });
+
+  area.appendChild(badge);
+  area.appendChild(qtext);
+  area.appendChild(opts);
+
+  // カードをリアニメート
+  const card = document.getElementById('quiz-card');
+  card.style.animation = 'none';
+  requestAnimationFrame(() => {
+    card.style.animation = 'fadeUp 0.4s ease';
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderResult(rid) {
+  const r = results[rid];
+  const card = document.getElementById('quiz-card');
+
+  document.getElementById('progress-wrap').style.display = 'none';
+
+  // feature テキストを改行・HTMLで処理
+  function formatText(text) {
+    return text.split('\n').map(line => line ? `<p style="margin-bottom:4px">${line}</p>` : `<br>`).join('');
+  }
+
+  card.innerHTML = `
+    <div class="result-header">
+      <span class="result-emoji">${r.emoji}</span>
+      <div class="result-badge">あなたのブレーキタイプ</div>
+      <div class="result-type">${r.type}</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="result-section">
+      <div class="section-label">どんなタイプ？</div>
+      <div class="feature-box">${formatText(r.feature)}</div>
+    </div>
+
+    <div class="result-section" style="margin-top:18px">
+      <div class="section-label">今日からのプチワーク ✍️</div>
+      <div class="work-box">
+        <div class="work-step">
+          <span class="work-step-icon">🌱</span>
+          <div class="work-text">${formatText(r.work)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-box">
+      <p>
+        動けないのは<br>
+        あなたがダメだからじゃない。<br>
+        原因があるだけ。
+        <span class="big-text">原因がわかれば、対策も見えてくる。</span>
+        今日のプチワーク、<br>ひとつだけやってみませんか？🌸
+      </p>
+    </div>
+
+    <button class="retry-btn" onclick="restartQuiz()">🔄 もう一度やってみる</button>
+    <p class="scroll-hint">↑ 結果を保存したいときはスクリーンショットをどうぞ</p>
+  `;
+
+  card.style.animation = 'none';
+  requestAnimationFrame(() => {
+    card.style.animation = 'fadeUp 0.5s ease';
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function restartQuiz() {
+  const card = document.getElementById('quiz-card');
+  card.innerHTML = `
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-label">
+        <span id="progress-text">Q1 / 2</span>
+        <span id="progress-pct">50%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width:50%"></div>
+      </div>
+    </div>
+    <div id="question-area"></div>
+  `;
+  renderQuestion('q1');
+}
+
+// 初期表示
+renderQuestion('q1');
+</script>
+</body>
+</html>
